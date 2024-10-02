@@ -1,3 +1,7 @@
-export default function Page({ text }: { text: string }) {
-  return <p>Customers page : {text}</p>;
+interface PageProps {
+  text: string;
+}
+
+export default function Page({ text }: PageProps) {
+  return <div>{text}</div>;
 }
