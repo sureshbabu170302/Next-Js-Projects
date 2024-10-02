@@ -1,7 +1,5 @@
-interface PageProps {
-  text: string;
-}
+import React from "react";
 
-export default function Page({ text }: PageProps) {
-  return <div>{text}</div>;
+export default function Page() {
+  return <div>Customer Page</div>;
 }
