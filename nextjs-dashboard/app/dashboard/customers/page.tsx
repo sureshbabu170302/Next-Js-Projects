@@ -33,7 +33,7 @@ export default function Page() {
   return (
     <main className="flex min-h-screen flex-col p-4">
       {/* Customer Section */}
-      <div>
+      <div    >
         <div>
           <h1
             className={`${lusitana.className} text-2xl text-gray-800 md:text-3xl`}
