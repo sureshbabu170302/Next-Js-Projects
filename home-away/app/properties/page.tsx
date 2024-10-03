@@ -5,3 +5,4 @@ function PropertiesPage() {
 }
 
 export default PropertiesPage;
+
