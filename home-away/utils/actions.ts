@@ -38,3 +38,5 @@ export const createProfileAction = async (
   }
   redirect("/");
 };
+
+export const fetchProfileImage = async () => {  };
