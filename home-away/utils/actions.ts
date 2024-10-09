@@ -1,13 +1,14 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 
-import db from "./db";
-import { auth, clerkClient, currentUser } from "@clerk/nextjs/server";
-import { revalidatePath } from "next/cache";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { clerkClient, currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
-import { profileSchema } from "./schemas";
+import { imageSchema, profileSchema, validateWithZodSchema } from "./schemas";
+import { revalidatePath } from "next/cache";
+import { uploadImage } from "./cloudinary";
+import db from "./db";
 
-export const getAuthUser = async () => {
+const getAuthUser = async () => {
   const user = await currentUser();
   if (!user) {
     throw new Error("You must be logged in to access this route");
@@ -23,8 +24,10 @@ export const createProfileAction = async (
   try {
     const user = await currentUser();
     if (!user) throw new Error("Please login to create a profile");
+
     const rawData = Object.fromEntries(formData);
-    const validatedFields = profileSchema.parse(rawData);
+    const validatedFields = validateWithZodSchema(profileSchema, rawData);
+
     await db.profile.create({
       data: {
         clerkId: user.id,
@@ -49,10 +52,9 @@ export const createProfileAction = async (
 export const fetchProfileImage = async () => {
   const user = await currentUser();
   if (!user) return null;
+
   const profile = await db.profile.findUnique({
-    where: {
-      clerkId: user.id,
-    },
+    where: { clerkId: user.id },
     select: {
       profileImage: true,
     },
@@ -62,12 +64,13 @@ export const fetchProfileImage = async () => {
 
 export const fetchProfile = async () => {
   const user = await getAuthUser();
+
   const profile = await db.profile.findUnique({
     where: {
       clerkId: user.id,
     },
   });
-  if (!profile) redirect("/profile/create");
+  if (!profile) return redirect("/profile/create");
   return profile;
 };
 
@@ -78,12 +81,7 @@ export const updateProfileAction = async (
   const user = await getAuthUser();
   try {
     const rawData = Object.fromEntries(formData);
-    const validatedFields = profileSchema.safeParse(rawData);
-
-    if (!validatedFields.success) {
-      const errors = validatedFields.error.errors.map((error) => error.message);
-      throw new Error(errors.join(","));
-    }
+    const validatedFields = validateWithZodSchema(profileSchema, rawData);
 
     await db.profile.update({
       where: {
@@ -99,3 +97,31 @@ export const updateProfileAction = async (
     };
   }
 };
+
+// export const updateProfileImageAction = async (
+//   prevState: any,
+//   formData: FormData
+// ) => {
+//   const user = await getAuthUser();
+//   try {
+//     const image = formData.get("image") as File;
+//     const validatedFields = validateWithZodSchema(imageSchema, { image });
+//     const fullPath = await uploadImage(validatedFields.image);
+
+//     await db.profile.update({
+//       where: {
+//         clerkId: user.id,
+//       },
+//       data: {
+//         profileImage: fullPath,
+//       },
+//     });
+
+//     revalidatePath("/profile");
+//     return { message: "Profile image updated successfully" };
+//   } catch (error) {
+//     return {
+//       message: error instanceof Error ? error.message : "An error occurred",
+//     };
+//   }
+// };
