@@ -6,7 +6,6 @@ import { auth, clerkClient, currentUser } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { profileSchema } from "./schemas";
-import { error } from "console";
 
 export const getAuthUser = async () => {
   const user = await currentUser();
@@ -15,13 +14,6 @@ export const getAuthUser = async () => {
   }
   if (!user.privateMetadata.hasProfile) redirect("/profile/create");
   return user;
-};
-
-const renderError = (error: unknown): { message: string } => {
-  console.log(error);
-  return {
-    message: error instanceof Error ? error.message : "An error occurred",
-  };
 };
 
 export const createProfileAction = async (
@@ -86,12 +78,13 @@ export const updateProfileAction = async (
   const user = await getAuthUser();
   try {
     const rawData = Object.fromEntries(formData);
-    const validatedFields = profileSchema.parse(rawData);
+    const validatedFields = profileSchema.safeParse(rawData);
 
-    // if (!validatedFields.success) {
-    //   const errors = validatedFields.error.errors.map((error) => error.message);
-    //   throw new Error(errors.join(","));
-    // }
+    if (!validatedFields.success) {
+      const errors = validatedFields.error.errors.map((error) => error.message);
+      throw new Error(errors.join(","));
+    }
+
     await db.profile.update({
       where: {
         clerkId: user.id,
@@ -101,6 +94,8 @@ export const updateProfileAction = async (
     revalidatePath("/profile");
     return { message: "Profile updated successfully" };
   } catch (error) {
-    return renderError(error);
+    return {
+      message: error instanceof Error ? error.message : "An error occurred",
+    };
   }
 };
