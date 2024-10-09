@@ -5,7 +5,6 @@ import { fetchProfileImage } from "@/utils/actions";
 
 async function UserIcon() {
   const profileImage = await fetchProfileImage();
-  console.log(profileImage);
   if (profileImage) {
     return (
       <img
