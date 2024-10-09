@@ -2,7 +2,6 @@
 import React from "react";
 import { LuUser2 } from "react-icons/lu";
 import { fetchProfileImage } from "@/utils/actions";
-import Image from "next/image";
 
 async function UserIcon() {
   const profileImage = await fetchProfileImage();
@@ -12,15 +11,11 @@ async function UserIcon() {
       <img
         src={profileImage}
         alt="img"
-        className="w-6 h-6 bg-primary rounded-full text-white"
+        className="w-6 h-6 bg-primary rounded-full text-white object-cover"
       />
     );
   }
-  return (
-    <>
-      <LuUser2 className="w-6 h-6 bg-primary rounded-full text-white" />;
-    </>
-  );
+  return <LuUser2 className="w-6 h-6 bg-primary rounded-full text-white" />;
 }
 
 export default UserIcon;
